@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderRepository } from './order.repository';
@@ -8,6 +9,7 @@ export class OrderService {
   constructor(
     @InjectRepository(OrderRepository)
     private orderRepository: OrderRepository,
+    @Inject('COUPON_SERVICE') private client: ClientProxy,
   ) {}
 
   async createOrder(createOrderDto: CreateOrderDto): Promise<void> {
