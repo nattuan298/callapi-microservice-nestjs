@@ -1,16 +1,29 @@
 import { NestFactory } from '@nestjs/core';
-import { Transport } from '@nestjs/microservices';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import * as config from 'config';
 
 async function bootstrap() {
+  const serverConfig = config.get('server');
   const app = await NestFactory.create(AppModule);
-  app.connectMicroservice({
-    transport: Transport.REDIS,
-    options: {
-      retryAttempts: 5,
-      retryDelay: 1000,
-    },
-  });
-  await app.listen(3000);
+
+  const options = new DocumentBuilder()
+    .setTitle('Order Microservice')
+    .setDescription('Order Microservice Document Application')
+    .setVersion('1.0')
+    .addBearerAuth({
+      type: 'http',
+      bearerFormat: 'JWT',
+      scheme: 'bearer',
+      name: 'Authorization',
+      in: 'header',
+    })
+    .build();
+
+  const document = SwaggerModule.createDocument(app, options);
+  SwaggerModule.setup('docs', app, document);
+
+  const port = serverConfig.port;
+  await app.listen(port);
 }
 bootstrap();

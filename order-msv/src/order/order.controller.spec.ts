@@ -3,7 +3,7 @@ import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 
 describe('OrderController', () => {
-  let controller: OrderController;
+  let orderController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -11,10 +11,21 @@ describe('OrderController', () => {
       providers: [OrderService],
     }).compile();
 
-    controller = module.get<OrderController>(OrderController);
+    orderController = module.get<OrderController>(OrderController);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  it('createOrder', async () => {
+    const createOrder = jest.fn();
+
+    const createOrderDto = {
+      product: 'product 1',
+      address: 'address 1',
+      phone: '0123456789',
+      email: 'tuan@gmail.com',
+      userId: '1',
+    };
+    createOrder: jest.fn();
+    orderController.createOrder();
+    expect(orderController);
   });
 });

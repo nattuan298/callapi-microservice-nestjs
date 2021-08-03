@@ -1,14 +1,12 @@
-import { Controller } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
+import { Controller, Get } from '@nestjs/common';
 
 @Controller('coupon')
 export class CouponController {
-  //@Get()
-  @MessagePattern('get-coupon')
+  @Get()
   getCoupon(): number {
     const coupon = Math.random();
     if (coupon <= 0.5) {
-      return 1;
-    } else return 0;
+      return 0;
+    } else return 1;
   }
 }
