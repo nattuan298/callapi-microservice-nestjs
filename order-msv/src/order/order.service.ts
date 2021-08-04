@@ -18,7 +18,7 @@ export class OrderService {
     private orderRepository: OrderRepository,
   ) {}
 
-  async createOrder(createOrderDto: CreateOrderDto): Promise<void> {
+  async createOrder(createOrderDto: CreateOrderDto): Promise<Order> {
     return this.orderRepository.createOrder(createOrderDto);
   }
 
@@ -27,41 +27,40 @@ export class OrderService {
   }
 
   async getOrderById(id: number): Promise<Order> {
-    return this.findOrderById(id);
+    const order = await this.orderRepository.findOne(id);
+    if (!order) {
+      throw new NotFoundException(`Task with ID "${id}" not found`);
+    }
+    return order;
   }
 
   async updateOrder(
     id: number,
     updateOrderDto: UpdateOrderDto,
   ): Promise<Order> {
-    const { product, address, phone, email, userId } = updateOrderDto;
-    const order = await this.findOrderById(id);
+    const { productId, address, phone, email, userId } = updateOrderDto;
+    const order = await this.getOrderById(id);
 
-    order.product = product;
+    order.productId = productId;
     order.address = address;
     order.phone = phone;
     order.email = email;
     order.userId = userId;
-    return await order.save();
+    await order.save();
+    return order;
   }
 
-  async deleteOrderById(id: number): Promise<Order> {
-    const order = await this.findOrderById(id);
-    return order.remove();
+  async deleteOrderById(id: number): Promise<void> {
+    const result = await this.orderRepository.delete(id);
+
+    if (result.affected === 0) {
+      throw new NotFoundException(`Task with ID "${id}" not found`);
+    }
   }
 
   async paginate(options: IPaginationOptions): Promise<Pagination<Order>> {
-    const queryBuilder = this.orderRepository.createQueryBuilder('c');
-    queryBuilder.orderBy('c.userId', 'DESC'); // Or whatever you need to do
-
+    const queryBuilder = this.orderRepository.createQueryBuilder('order');
+    queryBuilder.orderBy('order.id', 'DESC'); // Or whatever you need to do
     return paginate<Order>(queryBuilder, options);
-  }
-
-  private async findOrderById(id: number): Promise<Order> {
-    const order = await this.orderRepository.findOne(id);
-    if (!order) {
-      throw new NotFoundException(`Can not found order with ID: ${id}`);
-    }
-    return order;
   }
 }

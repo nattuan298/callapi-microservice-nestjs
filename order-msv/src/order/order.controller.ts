@@ -40,12 +40,12 @@ export class OrderController {
   })
   createOrder(
     @Body(ValidationPipe) createOrderDto: CreateOrderDto,
-  ): Promise<void> {
+  ): Promise<Order> {
     return this.orderService.createOrder(createOrderDto);
   }
 
   @Get()
-  @ApiCreatedResponse({ type: Order })
+  @ApiCreatedResponse({ type: Order, status: 200 })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'page', required: false })
   async index(
@@ -56,12 +56,11 @@ export class OrderController {
     return this.orderService.paginate({
       page,
       limit,
-      route: 'http://localhost:3000/orders',
+      route: 'http://localhost:3000/orders/',
     });
   }
 
   @Get('/:id')
-  @ApiCreatedResponse({ type: Order })
   getOrderById(@Param('id', ParseIntPipe) id: number): Promise<Order> {
     return this.orderService.getOrderById(id);
   }
@@ -76,10 +75,7 @@ export class OrderController {
   }
 
   @Delete('/:id')
-  @ApiCreatedResponse({
-    description: 'The order has been successfully deleted.',
-  })
-  deleteOrderById(@Param('id', ParseIntPipe) id: number): void {
-    this.orderService.deleteOrderById(id);
+  deleteOrderById(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return this.orderService.deleteOrderById(id);
   }
 }

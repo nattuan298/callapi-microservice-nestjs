@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GetOrderFilterDto } from './dto/get-order-filter.dto';
 import { OrderRepository } from './order.repository';
@@ -5,11 +6,8 @@ import { OrderService } from './order.service';
 
 const mockOrderRepository = () => ({
   getOrders: jest.fn(),
-  findOrderById: jest.fn(),
   createOrder: jest.fn(),
-  remove: jest.fn(),
-  updateOrder: jest.fn(),
-  save: jest.fn(),
+  delete: jest.fn(),
   findOne: jest.fn(),
 });
 
@@ -54,14 +52,16 @@ describe('OrderService', () => {
         email: 'tuan@gmail.com',
         userId: '1',
       };
-      orderRepository.findOrderById.mockResolvedValue(mockOrder);
-      const result = await orderRepository.findOrderById(1);
+      orderRepository.findOne.mockResolvedValue(mockOrder);
+
+      const result = await orderService.getOrderById(1);
       expect(result).toEqual(mockOrder);
+
+      expect(orderRepository.findOne).toHaveBeenCalledWith(1);
     });
     it('throw an error if order not found', async () => {
-      orderRepository.findOrderById.mockResolvedValue(null);
-      const result = await orderRepository.findOrderById(1);
-      expect(result).toEqual(null);
+      orderRepository.findOne.mockResolvedValue(null);
+      expect(orderService.getOrderById(1)).rejects.toThrow();
     });
   });
 
@@ -87,25 +87,16 @@ describe('OrderService', () => {
 
   describe('deleteOrder', () => {
     it('delete a order', async () => {
-      const mockOrder = {
-        id: 1,
-        product: 'product 1',
-        address: 'address 1',
-        phone: '0123456789',
-        email: 'tuan@gmail.com',
-        userId: '1',
-      };
-      orderRepository.findOrderById.mockResolvedValue(mockOrder);
-      const result = await orderRepository.findOrderById(1);
-      expect(result).toEqual(mockOrder);
-      //await orderService.deleteOrderById(1);
-      await orderRepository.remove();
-      expect(orderRepository.remove).toHaveBeenCalled();
+      orderRepository.delete.mockResolvedValue({ affected: 1 });
+      expect(orderRepository.delete).not.toHaveBeenCalled();
+      await orderService.deleteOrderById(1);
+      expect(orderRepository.delete).toHaveBeenCalledWith(1);
     });
     it('throw an error if order not found', async () => {
-      orderRepository.findOrderById.mockResolvedValue(null);
-      const result = await orderRepository.findOrderById(1);
-      expect(result).toEqual(null);
+      orderRepository.delete.mockResolvedValue({ affected: 0 });
+      expect(orderService.deleteOrderById(1)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -119,52 +110,23 @@ describe('OrderService', () => {
         userId: '1',
       };
 
-      const mockOrder = {
-        product: 'product 1',
-        address: 'address 1',
-        phone: '0123456789',
-        email: 'tuan@gmail.com',
-        userId: '1',
-      };
       const save = jest.fn().mockResolvedValue(true);
       const { product, address, phone, email, userId } = updateOrderDto;
-      orderRepository.findOrderById.mockResolvedValue(mockOrder);
-      const result = await orderRepository.findOrderById(1);
-      expect(result).toEqual(mockOrder);
+      orderService.getOrderById = jest.fn().mockResolvedValue({
+        product,
+        address,
+        phone,
+        email,
+        userId,
+        save,
+      });
 
-      result.product = product;
-      result.address = address;
-      result.phone = phone;
-      result.email = email;
-      result.userId = userId;
-
-      await save();
+      expect(orderService.getOrderById).not.toHaveBeenCalled();
+      expect(save).not.toHaveBeenCalled();
+      const result = await orderService.updateOrder(1, updateOrderDto);
+      expect(orderService.getOrderById).toHaveBeenCalled();
       expect(save).toHaveBeenCalled();
-      expect(result).toEqual(updateOrderDto);
-    });
-  });
-
-  describe('findOneById', () => {
-    it('call findOne() and return an order', async () => {
-      const mockOrder = {
-        product: 'product 1',
-        address: 'address 1',
-        phone: '0123456789',
-        email: 'tuan@gmail.com',
-        userId: '1',
-      };
-
-      orderRepository.findOne.mockResolvedValue(mockOrder);
-
-      const result = await orderService.findOrderById(1, mockOrder);
-      expect(result).toEqual(mockOrder);
-
-      expect(orderRepository.findOne).toHaveBeenCalledWith(1);
-    });
-
-    it('Can not found order by id', async () => {
-      orderRepository.findOne.mockResolvedValue(null);
-      expect(orderService.getOrderById(1)).rejects.toThrow();
+      expect(result.product).toEqual(updateOrderDto.product);
     });
   });
 });

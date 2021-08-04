@@ -15,24 +15,27 @@ export class OrderRepository extends Repository<Order> {
     const { search } = filterDto;
 
     if (search) {
-      query.andWhere('(order.email LIKE :search OR order.phone LIKE :search)', {
-        search: `%${search}%`,
-      });
+      query.andWhere(
+        '(order.email LIKE :search OR order.phone LIKE :search OR order.userId LIKE :search)',
+        {
+          search: `%${search}%`,
+        },
+      );
     }
     const orders = await query.getMany();
     return orders;
   }
 
-  async createOrder(createOrderDto: CreateOrderDto): Promise<void> {
+  async createOrder(createOrderDto: CreateOrderDto): Promise<Order> {
     const coupon = await axios
       .get('http://localhost:3001/coupon')
       .then((res) => res.data);
 
     console.log('Hello' + coupon);
 
-    const { product, address, phone, email, userId } = createOrderDto;
+    const { productId, address, phone, email, userId } = createOrderDto;
     const order = new Order();
-    order.product = product;
+    order.productId = productId;
     order.address = address;
 
     order.phone = phone;
@@ -46,6 +49,7 @@ export class OrderRepository extends Repository<Order> {
         );
       }
       await order.save();
+      return order;
     } catch (error) {
       throw new InternalServerErrorException('abc');
     }

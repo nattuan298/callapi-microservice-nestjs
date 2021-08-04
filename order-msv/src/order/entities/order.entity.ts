@@ -5,8 +5,8 @@ export class Order extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @Column()
-  product: string;
+  @Column('json', { nullable: false })
+  productId: string[];
 
   @Column()
   address: string;
