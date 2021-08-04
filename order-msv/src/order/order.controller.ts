@@ -10,11 +10,11 @@ import {
   Query,
   Patch,
   DefaultValuePipe,
+  UseGuards,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Order } from './entities/order.entity';
-import { GetOrderFilterDto } from './dto/get-order-filter.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import {
   ApiBearerAuth,
@@ -24,8 +24,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { LocalAuthGuard } from '../auth/local-guard.guard';
 
 @ApiBearerAuth()
+@UseGuards(LocalAuthGuard)
 @ApiTags('Orders')
 @Controller('orders')
 export class OrderController {
@@ -66,10 +68,6 @@ export class OrderController {
 
   @Patch('/:id')
   @ApiBody({ type: UpdateOrderDto })
-  @ApiCreatedResponse({
-    description: 'The order has been successfully updated.',
-    type: UpdateOrderDto,
-  })
   updateOrder(
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) updateOrderDto: UpdateOrderDto,

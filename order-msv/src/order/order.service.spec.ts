@@ -58,7 +58,7 @@ describe('OrderService', () => {
       const result = await orderRepository.findOrderById(1);
       expect(result).toEqual(mockOrder);
     });
-    it('throw an error if task not found', async () => {
+    it('throw an error if order not found', async () => {
       orderRepository.findOrderById.mockResolvedValue(null);
       const result = await orderRepository.findOrderById(1);
       expect(result).toEqual(null);
@@ -79,7 +79,7 @@ describe('OrderService', () => {
         userId: '1',
       };
 
-      const result = await orderRepository.createOrder(createOrderDto);
+      const result = await orderService.createOrder(createOrderDto);
       expect(orderRepository.createOrder).toHaveBeenCalledWith(createOrderDto);
       expect(result).toEqual('someOrder');
     });
@@ -88,6 +88,7 @@ describe('OrderService', () => {
   describe('deleteOrder', () => {
     it('delete a order', async () => {
       const mockOrder = {
+        id: 1,
         product: 'product 1',
         address: 'address 1',
         phone: '0123456789',
@@ -97,10 +98,11 @@ describe('OrderService', () => {
       orderRepository.findOrderById.mockResolvedValue(mockOrder);
       const result = await orderRepository.findOrderById(1);
       expect(result).toEqual(mockOrder);
+      //await orderService.deleteOrderById(1);
       await orderRepository.remove();
       expect(orderRepository.remove).toHaveBeenCalled();
     });
-    it('throw an error if task not found', async () => {
+    it('throw an error if order not found', async () => {
       orderRepository.findOrderById.mockResolvedValue(null);
       const result = await orderRepository.findOrderById(1);
       expect(result).toEqual(null);
@@ -124,11 +126,11 @@ describe('OrderService', () => {
         email: 'tuan@gmail.com',
         userId: '1',
       };
+      const save = jest.fn().mockResolvedValue(true);
+      const { product, address, phone, email, userId } = updateOrderDto;
       orderRepository.findOrderById.mockResolvedValue(mockOrder);
       const result = await orderRepository.findOrderById(1);
       expect(result).toEqual(mockOrder);
-
-      const { product, address, phone, email, userId } = updateOrderDto;
 
       result.product = product;
       result.address = address;
@@ -136,8 +138,9 @@ describe('OrderService', () => {
       result.email = email;
       result.userId = userId;
 
-      await orderRepository.save();
-      expect(orderRepository.save).toHaveBeenCalled();
+      await save();
+      expect(save).toHaveBeenCalled();
+      expect(result).toEqual(updateOrderDto);
     });
   });
 
@@ -157,6 +160,11 @@ describe('OrderService', () => {
       expect(result).toEqual(mockOrder);
 
       expect(orderRepository.findOne).toHaveBeenCalledWith(1);
+    });
+
+    it('Can not found order by id', async () => {
+      orderRepository.findOne.mockResolvedValue(null);
+      expect(orderService.getOrderById(1)).rejects.toThrow();
     });
   });
 });

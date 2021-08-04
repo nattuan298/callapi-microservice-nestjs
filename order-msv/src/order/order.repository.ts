@@ -2,12 +2,11 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { EntityRepository, getConnection, Repository } from 'typeorm';
+import { EntityRepository, Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Order } from './entities/order.entity';
 import axios from 'axios';
 import { GetOrderFilterDto } from './dto/get-order-filter.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
 
 @EntityRepository(Order)
 export class OrderRepository extends Repository<Order> {
@@ -48,7 +47,7 @@ export class OrderRepository extends Repository<Order> {
       }
       await order.save();
     } catch (error) {
-      throw new InternalServerErrorException('Error Here!');
+      throw new InternalServerErrorException('abc');
     }
   }
 }
